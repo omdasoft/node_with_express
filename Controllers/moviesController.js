@@ -1,6 +1,7 @@
 const { query } = require('express');
 const Movie = require('./../Models/movieModel');
 const ApiFeatures = require('./../Utils/ApiFeatures');
+const { now } = require('mongoose');
 
 //middleware to add top rated query params when get all movies
 exports.getTopRated = (req, res, next) => {
@@ -135,6 +136,39 @@ exports.deleteMovie = async (req, res) => {
         return res.status(200).json({
             status: "success",
             message: "Movie delete successfully"
+        });
+    } catch (error) {
+        res.status(404).json({
+            status: "fail",
+            message: error.message
+        });
+    }
+}
+
+exports.getMovieStats = async (req, res) => {
+    try {
+        const stats = await Movie.aggregate([
+            // {$match: {releaseYear: now().getFullYear()}},
+            {$match: {totalRating: {$gte: 200}}},
+            {$group: {
+                _id:'$releaseYear',
+                avgRating: {$avg: '$totalRating'},
+                avgPrice: {$avg: '$price'},
+                minPrice: {$min: '$price'},
+                maxPrice: {$max: '$price'},
+                priceTotal: {$sum: '$price'},
+                totalMovies: {$sum: 1}
+            }},
+            {$sort: { priceTotal: 1}},
+            // {$match: {maxPrice: {$lte: 50}}}
+        ]);
+
+        res.status(200).json({
+            status: "success",
+            count: stats.length,
+            data: {
+                stats
+            }
         });
     } catch (error) {
         res.status(404).json({

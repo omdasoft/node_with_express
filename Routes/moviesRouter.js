@@ -5,6 +5,8 @@ const router = express.Router();
 
 // router.param('id', moviesController.checkMovie);
 
+router.route('/movie-stats').get(moviesController.getMovieStats);
+
 router.route('/top-rated')
     .get(moviesController.getTopRated, moviesController.allMovies);
 router.route('/')
