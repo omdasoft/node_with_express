@@ -1,5 +1,6 @@
 const { query } = require('express');
 const Movie = require('./../Models/movieModel');
+const ApiFeatures = require('./../Utils/ApiFeatures');
 
 //middleware to add top rated query params when get all movies
 exports.getTopRated = (req, res, next) => {
@@ -11,49 +12,51 @@ exports.getTopRated = (req, res, next) => {
 
 exports.allMovies = async (req, res) => {
     try {
-        const excludedFields = ['sort', 'page', 'limit', 'fields'];
-        const queryObject = {...req.query};
+        const feature = new ApiFeatures(Movie.find(), req.query).filter().sort().limitFields().pagination();
+        let movies = await feature.query;
+        // const excludedFields = ['sort', 'page', 'limit', 'fields'];
+        // const queryObject = {...req.query};
         
-        excludedFields.forEach((el) => {
-            delete queryObject[el];
-        })
+        // excludedFields.forEach((el) => {
+        //     delete queryObject[el];
+        // })
 
         // let queryString = JSON.stringify(req.query);
         // queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
         // const queryObj = JSON.parse(queryString);
-        let query = Movie.find(queryObject);
+        // let query = Movie.find(queryObject);
 
         //sort the result
-        if (req.query.sort) {
-            const sortByfields = req.query.sort.split(',').join(' ');
-            query = query.sort(sortByfields);
-        } else {
-            query = query.sort('-createdAt');
-        }
+        // if (req.query.sort) {
+        //     const sortByfields = req.query.sort.split(',').join(' ');
+        //     query = query.sort(sortByfields);
+        // } else {
+        //     query = query.sort('-createdAt');
+        // }
 
         //Limit the fields
-        if (req.query.fields) {
-            const fields = req.query.fields.split(',').join(' ');
-            query = query.select(fields);
-        } else {
-            query = query.select('-__v');
-        }
+        // if (req.query.fields) {
+        //     const fields = req.query.fields.split(',').join(' ');
+        //     query = query.select(fields);
+        // } else {
+        //     query = query.select('-__v');
+        // }
 
         //pagination
-        const page = req.query.page;
-        const limit = req.query.limit;
-        const skip = (page - 1) * limit;
+        // const page = req.query.page;
+        // const limit = req.query.limit;
+        // const skip = (page - 1) * limit;
 
-        query = query.skip(skip).limit(limit);
+        // query = query.skip(skip).limit(limit);
 
-        if (req.query.page) {
-            const moviesCount = await Movie.countDocuments();
-            if (skip >= moviesCount) {
-                throw new Error("No more records");
-            }
-        }
+        // if (req.query.page) {
+        //     const moviesCount = await Movie.countDocuments();
+        //     if (skip >= moviesCount) {
+        //         throw new Error("No more records");
+        //     }
+        // }
 
-        const movies = await query;
+        // const movies = await query;
         // const movies = await Movie.find()
         //     .where('duration').gte(req.query.duration)
         //     .where('totalRatings').gte(req.query.totalRatings)
