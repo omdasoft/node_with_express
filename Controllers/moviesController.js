@@ -177,3 +177,35 @@ exports.getMovieStats = async (req, res) => {
         });
     }
 }
+
+exports.getMovieByGenre = async (req, res) => {
+    try {   
+        const genre = req.params.genre;
+        const movies = await Movie.aggregate([
+            {$unwind: '$genres'},
+            {$group: {
+                _id: '$genres',
+                moviesCount: {$sum: 1},
+                movies: {$push: '$name'}
+            }},
+            {$addFields: {genre: "$_id"}}, //fields that want to include in the result
+            {$project: {_id: 0}}, //fields you want to return 1 to include 0 to reject
+            {$sort: {moviesCount: -1}}, //sort the result by the moviesCount in decending order
+            // {$limit: 6} //limit the result
+            {$match: {genre: genre}} //filter the final result by genre
+        ]);
+
+        return res.status(200).json({
+            status: "success",
+            count: movies.length,
+            data: {
+                movies
+            }
+        });
+    } catch (error) {
+        res.status(404).json({
+            status: "fail",
+            message: error.message
+        });
+    }
+}
